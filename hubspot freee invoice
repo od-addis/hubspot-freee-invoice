@@ -1,0 +1,142 @@
+import os
+from hubspot import HubSpot
+import requests
+import json
+import datetime
+
+def main(event):
+    # HubSpotのアクセストークンを取得
+    hubspot = HubSpot(access_token=os.getenv('HUBSPOT_SECRET'))
+
+    # プロパティを変数に格納
+    billing_date_timestamp = event["inputFields"]["billing_date"]
+    company_id = event["inputFields"]["company_id"]
+    tax_entry_method = event["inputFields"]["tax_entry_method"]
+    tax_fraction = event["inputFields"]["tax_fraction"]
+    withholding_tax_entry_method = event["inputFields"]["withholding_tax_entry_method"]
+    partner_id = event["inputFields"]["partner_id"]
+    partner_title = event["inputFields"]["partner_title"]
+    lines = event["inputFields"]["lines"]
+    
+    #template_id = event["inputFields"]["template_id"]
+    #invoice_number = event["inputFields"]["invoice_number"]
+    branch_no = event["inputFields"]["branch_no"]
+    issue_date_timestamp = event["inputFields"]["issue_date"]
+    payment_date_timestamp = event["inputFields"]["payment_date"]
+    payment_type = event["inputFields"]["payment_type"]
+    subject = event["inputFields"]["subject"]
+    #include_amount_brought_forward = event["inputFields"]["include_amount_brought_forward"]
+    #amount_brought_forward = event["inputFields"]["amount_brought_forward"]
+    invoice_note = event["inputFields"]["invoice_note"]
+    memo = event["inputFields"]["memo"]
+    #partner_address_zipcode = event["inputFields"]["partner_address_zipcode"]
+    #partner_address_prefecture_code = event["inputFields"]["partner_address_prefecture_code"]
+    #partner_contact_name = event["inputFields"]["partner_contact_name"]
+    #partner_display_name = event["inputFields"]["partner_display_name"]
+    #partner_bank_account = event["inputFields"]["partner_bank_account"]
+    description = event["inputFields"]["description"]
+    sales_date_timestamp = event["inputFields"]["sales_date"]
+    unit = event["inputFields"]["unit"]
+    quantity = event["inputFields"]["quantity"]
+    unit_price = event["inputFields"]["unit_price"]
+    tax_rate = event["inputFields"]["tax_rate"]
+    withholding = event["inputFields"]["withholding"]
+    account_item_id = event["inputFields"]["account_item_id"]
+    taxes_code = event["inputFields"]["tax_code"]
+    item_id = event["inputFields"]["item_id"]
+    #section_id = event["inputFields"]["section_id"]
+    #tag_ids = event["inputFields"]["tag_ids"]
+    #segment_1_tag_id = event["inputFields"]["segment_1_tag_id"]
+    #segment_2_tag_id = event["inputFields"]["segment_2_tag_id"]
+    #segment_3_tag_id = event["inputFields"]["segment_3_tag_id"]
+    
+     # ミリ秒単位のタイムスタンプをISO 8601形式の日付文字列に変換
+    billing_date = datetime.datetime.fromtimestamp(int(billing_date_timestamp) / 1000.0).strftime('%Y-%m-%d')
+    issue_date = datetime.datetime.fromtimestamp(int(issue_date_timestamp) / 1000.0).strftime('%Y-%m-%d')
+    payment_date = datetime.datetime.fromtimestamp(int(payment_date_timestamp) / 1000.0).strftime('%Y-%m-%d')
+    sales_date = datetime.datetime.fromtimestamp(int(sales_date_timestamp) / 1000.0).strftime('%Y-%m-%d')
+    
+    print(billing_date)
+    print(payment_date)
+    
+    # Freeeに請求書を作成する関数
+    def create_invoice_in_freee(company_id, billing_date, tax_entry_method, tax_fraction, withholding_tax_entry_method, partner_id, partner_title, lines,issue_date,payment_date,payment_type,subject,invoice_note,memo,description,sales_date,unit,quantity,unit_price,tax_rate,withholding,account_item_id,
+tax_code,item_id):
+        FREEE_API_BASE_URL = "https://api.freee.co.jp/iv/invoices"
+        FREEE_ACCESS_TOKEN = "25bdbbe3eac041549f71f671d9ffe42a799fa39735ba96a8078aa3f92de2acc0"
+
+        headers = {
+            'Authorization': f'Bearer {FREEE_ACCESS_TOKEN}',
+            'Content-Type': 'application/json'
+        }
+        
+        # Freeeに渡す請求書のデータ
+        invoice_data = {
+  "company_id": company_id,
+  #"template_id": template_id,
+  #"invoice_number": invoice_number,
+  "branch_no": branch_no,
+  "billing_date": billing_date,
+  "issue_date": issue_date,
+  "payment_date": payment_date,
+  "payment_type": payment_type,
+  "subject": subject,
+  "tax_entry_method": tax_entry_method,
+  "tax_fraction": tax_fraction,
+  #"line_amount_fraction": line_amount_fraction,
+  "withholding_tax_entry_method": withholding_tax_entry_method,
+  #"include_amount_brought_forward": include_amount_brought_forward,
+  #"amount_brought_forward": amount_brought_forward,
+  "invoice_note": invoice_note,
+  "memo": memo,
+  "partner_id": partner_id,
+  #"partner_code": partner_code,
+  "partner_title": partner_title,
+  #"partner_address_zipcode": partner_address_zipcode,
+  #"partner_address_prefecture_code": partner_address_prefecture_code,
+  #"partner_address_street_name1": partner_address_street_name1,
+  #"partner_address_street_name2": partner_address_street_name2,
+  #"partner_contact_department": partner_contact_department,
+  #"partner_contact_name": partner_contact_name,
+  #"partner_display_name": partner_display_name,
+  #"partner_bank_account": partner_bank_account,
+  #"company_contact_name": company_contact_name,
+  #"company_name": company_name,
+  #"company_description": company_description,
+  #"bank_account_to_transfer": bank_account_to_transfer,
+  "lines": [
+    {
+      "type": "item",
+      "description": description,
+      "sales_date": sales_date,
+      "unit":unit,
+      "quantity": quantity,
+      "unit_price": unit_price,
+      "tax_rate": tax_rate,
+      #"reduced_tax_rate": reduced_tax_rate,
+      "withholding": withholding,
+      "account_item_id": account_item_id,
+      "taxes_code": taxes_code,
+      #"item_id": item_id,
+      #"section_id": section_id,
+      #"tag_ids": [
+        #tag_ids
+      #],
+      #"segment_1_tag_id": segment_1_tag_id,
+      #"segment_2_tag_id": segment_2_tag_id,
+      #"segment_3_tag_id": segment_3_tag_id
+    }
+  ]
+}
+        response = requests.post(FREEE_API_BASE_URL, headers=headers, json=invoice_data)
+        print(response)
+        print(response.text)
+        print(response.status_code)
+        
+    # Freeeに請求書を作成
+    create_invoice_in_freee(company_id, billing_date, tax_entry_method, tax_fraction, withholding_tax_entry_method, partner_id, partner_title,
+                            lines,issue_date,payment_date,payment_type,subject,invoice_note,memo,description,sales_date,unit,quantity,unit_price,tax_rate,withholding,account_item_id,
+                           taxes_code,item_id)
+    return {
+        "outputFields": {}
+    }
